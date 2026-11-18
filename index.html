@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WorkTrack Tim Agrikultur (H2) - Work Management System</title>
+
+<!-- FAVICON LOGO UTAMA WORKTRACK -->
+    <link rel="icon" type="image/svg+xml" href="default_new.svg" sizes="128x128">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col md:flex-row">
+
+    <div id="sidebarOverlay" onclick="window.toggleMobileSidebar()" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 md:hidden"></div>
+
+    <div id="loginModal" class="fixed inset-0 bg-worktrack z-50 flex flex-col items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white rounded-3xl shadow-xl max-w-md w-full p-6 sm:p-10 space-y-6 border border-slate-100 my-auto">
+            <div class="text-center space-y-2">
+                <div class="inline-flex items-center gap-3 justify-center">
+
+                    <!-- FAVICON LOGO UTAMA WORKTRACK -->
+                    <img src="default_new.svg" alt="WorkTrack Logo" class="w-14 h-14 object-contain">
+
+                    <div class="text-left">
+                        <div class="text-2xl font-black text-slate-900 tracking-tight leading-none">WorkTrack</div>
+                        <div class="text-xs font-bold text-emerald-600 mt-1">Tim Agrikultur · H2</div>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-400 font-medium">Work Management System (Online Database)</p>
+            </div>
+
+            <!-- STEP 1: PILIH AKUN -->
+            <div id="loginStepAccounts" class="space-y-4">
+                <div class="text-center">
+                    <h2 class="text-lg font-bold text-slate-800">Pilih Akun Anda</h2>
+                    <p class="text-xs text-slate-500">Klik salah satu profil, lalu masukkan password</p>
+                </div>
+
+                <div id="accountListContainer" class="space-y-2.5">
+                    <div class="text-center text-xs text-slate-400 py-6">Memuat daftar akun...</div>
+                </div>
+
+                <div class="text-[10px] text-slate-400 text-center bg-slate-50 border border-slate-100 rounded-xl p-2">
+                    🔐 Login diverifikasi oleh <b class="text-slate-600">Firebase Authentication</b>. Password diatur admin di Firebase Console. Ubah password sendiri lewat tombol 🔑 di sidebar.
+                </div>
+            </div>
+
+            <!-- STEP 2: INPUT PASSWORD -->
+            <div id="loginStepPassword" class="hidden space-y-4">
+                <div class="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-3">
+                    <div id="loginSelectedAvatar" class="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">U</div>
+                    <div class="min-w-0">
+                        <div id="loginSelectedName" class="font-bold text-sm text-slate-800 truncate">User</div>
+                        <div id="loginSelectedRole" class="text-[11px] text-slate-400 truncate">Role</div>
+                    </div>
+                </div>
+
+                <form onsubmit="window.submitLogin(event)" class="space-y-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 mb-1">Password</label>
+                        <input type="password" id="loginPasswordInput" required placeholder="Masukkan password akun ini" class="w-full p-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" autocomplete="current-password">
+                    </div>
+
+                    <div id="loginError" class="hidden text-xs text-red-600 font-semibold bg-red-50 border border-red-200 rounded-xl px-3 py-2"></div>
+
+                    <div class="flex gap-2">
+                        <button type="button" onclick="window.backToAccounts()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 rounded-xl text-sm transition">← Kembali</button>
+                        <button type="submit" class="flex-[2] bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-sm transition">Masuk ➔</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="border-t border-slate-100 pt-3 text-center">
+                <button type="button" onclick="window.resetAppStorage()" class="text-[11px] text-red-500 hover:underline">
+                    🔄 Reset Cache Session
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="appContainer" class="hidden w-full flex flex-col md:flex-row h-screen overflow-hidden">
+
+        <aside id="sidebar" class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 flex flex-col justify-between p-4 flex-shrink-0 transition-transform duration-300 transform -translate-x-full md:translate-x-0 h-full overflow-y-auto">
+            <div class="space-y-6">
+                <div class="flex items-center justify-between px-2 py-2">
+                    <div class="flex items-center gap-3">
+
+                        <!-- FAVICON LOGO UTAMA WORKTRACK -->
+                        <img src="default_new.svg" alt="WorkTrack Logo" class="w-16 h-16 rounded-xl object-contain shadow-md">
+
+                        <div>
+                            <div class="font-black text-white text-base tracking-wide leading-none">WorkTrack</div>
+                            <div class="text-[10px] text-amber-300 font-bold mt-0.5">Tim Agrikultur · H2</div>
+                            <div class="text-[10px] text-emerald-400 font-medium">● Online Cloud Sync</div>
+                        </div>
+                    </div>
+                    <button onclick="window.toggleMobileSidebar()" class="md:hidden text-slate-400 hover:text-white text-lg font-bold">✕</button>
+                </div>
+
+                <nav class="space-y-6 text-xs">
+                    <div>
+                        <div class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Main Menu</div>
+                        <div class="space-y-1">
+                            <button onclick="window.switchTab('tasks')" id="side-tasks" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-slate-800 transition sidebar-active">
+                                <span class="text-sm">📋</span> Active Task
+                            </button>
+                            <button onclick="window.switchTab('discussions')" id="side-discussions" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-slate-800 transition">
+                                <span class="text-sm">💬</span> Internal Discussion
+                            </button>
+                            <button onclick="window.switchTab('todo')" id="side-todo" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-slate-800 transition">
+                                <span class="text-sm">☑️</span> List To-Do Tim
+                            </button>
+                            <button onclick="window.switchTab('workload')" id="side-workload" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-slate-800 transition">
+                                <span class="text-sm">👥</span> Workload
+                            </button>
+                            <button onclick="window.switchTab('calendar')" id="side-calendar" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-slate-800 transition">
+                                <span class="text-sm">📅</span> Calendar
+                            </button>
+                            <button onclick="window.switchTab('contacts')" id="side-contacts" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-slate-800 transition">
+                                <span class="text-sm">📇</span> Contact Stakeholder
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Histori & Laporan</div>
+                        <div class="space-y-1">
+                            <button onclick="window.switchTab('history')" id="side-history" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-slate-800 transition">
+                                <span class="text-sm">📊</span> History & Recap
+                            </button>
+                            <button onclick="window.switchTab('archive')" id="side-archive" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-slate-800 transition">
+                                <span class="text-sm">📁</span> Archive
+                            </button>
+                            <button onclick="window.switchTab('eperformance')" id="side-eperformance" class="hidden w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left hover:bg-slate-800 transition text-amber-300 font-semibold">
+                                <span class="text-sm">📄</span> Report ePerformance
+                            </button>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+
+            <div class="border-t border-slate-800 pt-4 px-2 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-xs" id="userAvatar">
+                            U
+                        </div>
+                        <div class="truncate max-w-[100px]">
+                            <div id="sidebarUserName" class="text-xs font-bold text-white truncate">User</div>
+                            <div id="sidebarUserRole" class="text-[10px] text-slate-400 truncate">Role</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="window.changeMyPassword()" class="text-xs text-slate-400 hover:text-blue-400 p-1" title="Ubah Password Saya">🔑</button>
+                        <button onclick="window.logout()" class="text-xs text-red-400 hover:text-red-300 p-1" title="Ganti Akun / Logout">🚪</button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <div class="flex-grow flex flex-col min-w-0 bg-slate-50 h-full overflow-y-auto">
+            <header class="bg-white border-b border-slate-200 px-4 sm:px-6 py-3.5 flex items-center justify-between gap-2 sticky top-0 z-30">
+                <div class="flex items-center gap-3">
+                    <button onclick="window.toggleMobileSidebar()" class="md:hidden bg-slate-100 hover:bg-slate-200 p-2 rounded-xl text-slate-700 font-bold text-lg" title="Buka Menu">
+                        ☰
+                    </button>
+                    <div>
+                        <h1 class="text-base sm:text-xl font-bold text-slate-900 leading-tight">Dashboard WorkTrack <span class="text-emerald-600">Tim Agrikultur</span></h1>
+                        <p class="text-[11px] sm:text-xs text-slate-500">Halo, <span id="topGreetingName" class="font-semibold text-blue-600">User</span>!</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <button id="btnEnableNotif" onclick="window.requestNotificationPermission(true)" class="hidden bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold px-3 py-2 rounded-xl transition items-center gap-1.5" title="Aktifkan notifikasi pop-up browser">
+                        <span>🔔</span>
+                        <span class="hidden sm:inline">Aktifkan Notifikasi</span>
+                    </button>
+
+                    <button id="btnAdminManageAccounts" onclick="window.openAccountAdmin()" class="hidden bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-3 py-2 rounded-xl shadow transition items-center gap-1.5">
+                        <span>👥</span>
+                        <span>Kelola Akun</span>
+                    </button>
+
+                    <button id="btnAdminManageCodes" onclick="window.openModal('adminCodeModal')" class="hidden bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-2 rounded-xl shadow transition flex items-center gap-1.5">
+                        <span>⚙️</span>
+                        <span>Tambah / Kelola Kode Kategori</span>
+                    </button>
+
+                    <div class="text-right text-[11px] sm:text-xs border-l pl-3 border-slate-200">
+                        <div id="currentDateDisplay" class="font-bold text-slate-800">-</div>
+                        <div id="currentTimeDisplay" class="text-[10px] text-slate-500 font-mono">-</div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="p-4 sm:p-6 pb-0">
+                <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+                    <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <div class="text-[11px] sm:text-xs text-slate-500 font-medium">Total Pekerjaan</div>
+                            <div id="cardTotalWork" class="text-xl sm:text-2xl font-black text-slate-900 mt-0.5">0</div>
+                        </div>
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-base sm:text-lg">📁</div>
+                    </div>
+
+                    <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <div class="text-[11px] sm:text-xs text-slate-500 font-medium">Pekerjaan Aktif</div>
+                            <div id="cardActiveWork" class="text-xl sm:text-2xl font-black text-blue-600 mt-0.5">0</div>
+                        </div>
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center text-base sm:text-lg">⚡</div>
+                    </div>
+
+                    <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <div class="text-[11px] sm:text-xs text-slate-500 font-medium">Pending To-Do</div>
+                            <div id="cardActiveTodo" class="text-xl sm:text-2xl font-black text-amber-600 mt-0.5">0</div>
+                        </div>
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center text-base sm:text-lg">☑️</div>
+                    </div>
+
+                    <div class="bg-white p-3.5 sm:p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+                        <div>
+                            <div class="text-[11px] sm:text-xs text-slate-500 font-medium">Plan Diskusi</div>
+                            <div id="cardDiscussionWork" class="text-xl sm:text-2xl font-black text-indigo-600 mt-0.5">0</div>
+                        </div>
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center text-base sm:text-lg">💬</div>
+                    </div>
+                </div>
+            </div>
+
+            <main class="p-4 sm:p-6 flex-grow">
+
+                <section id="sec-tasks" class="space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                        <h2 class="text-sm sm:text-base font-bold text-slate-900">Active Task & Work Progress</h2>
+                        <div class="flex gap-2">
+                            <button id="btnProposeTask" onclick="window.openModal('proposeTaskModal')" class="hidden bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition w-full sm:w-auto text-center">
+                                💡 Propose Pekerjaan Baru
+                            </button>
+                            <button id="btnAssignTask" onclick="window.openModal('taskModal')" class="hidden bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition w-full sm:w-auto text-center">
+                                ➕ Assign Task Baru
+                            </button>
+                        </div>
+                    </div>
+                    <div id="taskList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-stretch"></div>
+                </section>
+
+                <section id="sec-discussions" class="hidden space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h2 class="text-sm sm:text-base font-bold text-slate-900">Internal Discussion Plan</h2>
+                        <button onclick="window.openModal('discussionModal')" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition">
+                            💬 Plan Diskusi Baru
+                        </button>
+                    </div>
+                    <div id="discussionList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </section>
+
+                <section id="sec-todo" class="hidden space-y-4">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div>
+                            <h2 class="text-sm sm:text-base font-bold text-slate-900">List To-Do Tim (Quick Action)</h2>
+                            <p class="text-xs text-slate-500">Tugas langsung tanpa upload file.</p>
+                        </div>
+                        <button onclick="window.openModal('addTodoModal')" class="bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition w-full sm:w-auto text-center">
+                            ➕ Tambah To-Do Baru
+                        </button>
+                    </div>
+                    <div id="todoContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </section>
+
+                <section id="sec-workload" class="hidden space-y-4">
+                    <h2 class="text-sm sm:text-base font-bold text-slate-900">Beban Kerja Staff (Workload & Peran)</h2>
+                    <div id="workloadGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+                </section>
+
+                <section id="sec-calendar" class="hidden space-y-4">
+                    <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm">
+                        <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-3 mb-4 border-b pb-3">
+                            <div>
+                                <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                                    <span>📅</span> Kalender Interaktif & Agenda Tim
+                                </h2>
+                                <p class="text-xs text-slate-500">Aktivitas utama (Task, Diskusi, To-Do) jadi highlight utama. Klik 1x untuk lihat detail, klik 2x atau tekan `+` untuk tambah agenda.</p>
+                            </div>
+
+                            <div class="flex flex-wrap items-center gap-2">
+                                <div class="flex items-center gap-1.5 bg-slate-50 px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs">
+                                    <span class="text-slate-500 font-bold">👤 Filter:</span>
+                                    <select id="calUserFilter" onchange="window.renderCalendar()" class="bg-transparent font-semibold text-slate-800 outline-none cursor-pointer">
+                                        <option value="ALL">👥 Semua Tim</option>
+                                    </select>
+                                </div>
+
+                                <div class="flex items-center gap-1">
+                                    <button onclick="window.changeCalMonth(-1)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-8 h-8 rounded-lg font-bold transition">◀</button>
+                                    <span id="calMonthLabel" class="text-xs font-bold text-slate-800 min-w-[120px] text-center">-</span>
+                                    <button onclick="window.changeCalMonth(1)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 w-8 h-8 rounded-lg font-bold transition">▶</button>
+                                    <button onclick="window.goCalToday()" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold px-3 h-8 rounded-lg transition">Hari Ini</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            <div class="lg:col-span-2 space-y-2">
+                                <div id="calendarGrid"></div>
+                                <div class="flex flex-wrap gap-3 text-[10px] text-slate-600 bg-slate-50 p-2.5 rounded-xl border border-slate-100 items-center">
+                                    <span class="font-bold text-slate-800">Legenda:</span>
+                                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-blue-600"></span> Task Deadline</span>
+                                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-indigo-600"></span> Plan Diskusi</span>
+                                    <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-500"></span> To-Do List</span>
+                                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-emerald-100 border border-emerald-300"></span> WFH Tim (Full)</span>
+                                    <span class="flex items-center gap-1"><span class="w-3 h-3 rounded bg-purple-100 border border-purple-300"></span> Perjadin Tim (Full)</span>
+                                    <span class="flex items-center gap-1"><span class="w-3.5 h-3.5 rounded-full bg-sky-100 border border-sky-300 text-[8px] font-bold flex items-center justify-center text-sky-800">K</span> Inisial Individu</span>
+                                </div>
+                            </div>
+
+                            <div class="space-y-3">
+                                <div class="bg-slate-50 border border-slate-200 p-3 rounded-2xl space-y-2 text-xs">
+                                    <div class="font-bold text-slate-800 flex justify-between items-center border-b pb-1.5">
+                                        <span>📍 Status Presensi / Off-Site Hari Ini</span>
+                                        <span class="text-[10px] bg-white border px-2 py-0.5 rounded font-bold text-slate-600" id="todayPresenceBadge">0 Tim</span>
+                                    </div>
+                                    <div id="todayPresenceContainer" class="space-y-1.5 max-h-36 overflow-y-auto pr-1"></div>
+                                </div>
+
+                                <div id="calendarDetail" class="bg-slate-50 rounded-2xl border border-slate-200 p-3 text-xs max-h-[360px] overflow-y-auto"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="sec-contacts" class="hidden space-y-4">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                            <div>
+                                <h2 class="text-sm sm:text-base font-bold text-slate-900">📇 Contact Stakeholder</h2>
+                                <p class="text-xs text-slate-500">Direktori kontak stakeholder tim (Pemerintah/K/L, Badan Usaha, Akademisi, dll.).</p>
+                            </div>
+                            <button onclick="window.openContactModal('')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition w-full sm:w-auto text-center">
+                                ➕ Tambah Kontak
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 border-t pt-3">
+                            <div class="relative sm:col-span-2">
+                                <input type="text" id="contactSearchInput" oninput="window.renderContacts()" placeholder="Cari nama orang / instansi / organisasi..." class="w-full pl-8 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <span class="absolute left-2.5 top-2 text-slate-400 text-xs">🔍</span>
+                            </div>
+                            <select id="contactFilterType" onchange="window.renderContacts()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2">
+                                <option value="ALL">🗂️ Semua Jenis Organisasi</option>
+                                <option value="PEMERINTAH">🏛️ Pemerintah / K/L</option>
+                                <option value="BADAN_USAHA">🏢 Badan Usaha</option>
+                                <option value="AKADEMISI">🎓 Akademisi</option>
+                                <option value="OTHER">📌 Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="contactList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                </section>
+
+                <section id="sec-history" class="hidden space-y-4">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                        <div>
+                            <h2 class="text-sm sm:text-base font-bold text-slate-900">History & Rekapitulasi Kinerja</h2>
+                            <p class="text-xs text-slate-500">Saring riwayat pengerjaan berdasarkan rentang waktu.</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
+                            <select id="histFilterType" onchange="window.onFilterTypeChange('histFilterType', 'histFilterDetail', window.renderHistory)" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium">
+                                <option value="ALL">🗓️ Semua Waktu (Total)</option>
+                                <option value="MONTH">📅 Per Bulan</option>
+                                <option value="QUARTER">📊 Per Triwulan</option>
+                                <option value="SEMESTER">📈 Per Semester</option>
+                                <option value="YEAR">📆 Per Tahun</option>
+                            </select>
+                            <select id="histFilterDetail" onchange="window.renderHistory()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 font-medium"></select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                            <h3 class="font-bold text-xs text-slate-800 border-b pb-2">📊 Rekap Tugas Selesai per Staff</h3>
+                            <div id="staffHistoryList" class="space-y-2"></div>
+                        </div>
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                            <h3 class="font-bold text-xs text-slate-800 border-b pb-2">💬 History Diskusi Internal Selesai</h3>
+                            <div id="discussionHistoryList" class="space-y-2"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="sec-archive" class="hidden space-y-4">
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                            <div>
+                                <h2 class="text-sm sm:text-base font-bold text-slate-900">Archive & Work Recall Index</h2>
+                                <p class="text-xs text-slate-500">Pencarian, pemfilteran, dan pengurutan riwayat dokumen.</p>
+                            </div>
+                            <button onclick="window.openModal('workRecallModal')" class="bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition w-full sm:w-auto text-center">
+                                ➕ Indeks Manual
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 border-t pt-3">
+                            <div class="relative">
+                                <input type="text" id="archiveSearchInput" oninput="window.renderArchiveWorkRecall()" placeholder="Cari judul, kata kunci..." class="w-full pl-8 pr-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <span class="absolute left-2.5 top-2 text-slate-400 text-xs">🔍</span>
+                            </div>
+
+                            <select id="arcFilterType" onchange="window.onFilterTypeChange('arcFilterType', 'arcFilterDetail', window.renderArchiveWorkRecall)" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2">
+                                <option value="ALL">🗓️ Semua Waktu</option>
+                                <option value="MONTH">📅 Per Bulan</option>
+                                <option value="QUARTER">📊 Per Triwulan</option>
+                                <option value="SEMESTER">📈 Per Semester</option>
+                                <option value="YEAR">📆 Per Tahun</option>
+                            </select>
+
+                            <select id="arcFilterDetail" onchange="window.renderArchiveWorkRecall()" class="text-xs bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-2"></select>
+
+                            <select id="arcSortOrder" onchange="window.renderArchiveWorkRecall()" class="text-xs bg-blue-50 text-blue-700 border border-blue-200 font-bold rounded-xl px-2.5 py-2">
+                                <option value="DESC">⬇️ Terupdate (Baru ➔ Lama)</option>
+                                <option value="ASC">⬆️ Terlama (Lama ➔ Baru)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="workRecallAccordionList" class="space-y-2"></div>
+                </section>
+
+                <section id="sec-eperformance" class="hidden space-y-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                        <div class="border-b pb-3 flex justify-between items-start">
+                            <div>
+                                <h2 class="text-base font-bold text-slate-900">📄 Generate Report ePerformance (.docx)</h2>
+                                <p class="text-xs text-slate-500 mt-0.5">Pilih periode dan Kode Kategori untuk mengunduh laporan ber-template resmi.</p>
+                            </div>
+                            <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2.5 py-1 rounded-full border border-amber-200">Template Formal</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Pilih User / Pemilik Laporan</label>
+                                <!-- Opsi diisi otomatis dari TEAM_CONFIG.ePerfUserIds (config.js) -->
+                                <select id="ePerfUser" onchange="window.updateEPerfOptions()" class="w-full p-2.5 bg-slate-50 border rounded-xl font-medium"></select>
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Pilih Kode Kategori</label>
+                                <select id="ePerfCode" onchange="window.updateEPerfOptions()" class="w-full p-2.5 bg-slate-50 border rounded-xl font-medium"></select>
+                            </div>
+
+                            <div>
+                                <label class="block font-bold text-slate-700 mb-1">Filter Periode Bulan (1 - 12)</label>
+                                <select id="ePerfMonth" onchange="window.updateEPerfOptions()" class="w-full p-2.5 bg-slate-50 border rounded-xl font-medium">
+                                    <option value="ALL">🗓️ Semua Bulan (Full Year)</option>
+                                    <option value="1">Bulan 1 (Januari)</option>
+                                    <option value="2">Bulan 2 (Februari)</option>
+                                    <option value="3">Bulan 3 (Maret)</option>
+                                    <option value="4">Bulan 4 (April)</option>
+                                    <option value="5">Bulan 5 (Mei)</option>
+                                    <option value="6">Bulan 6 (Juni)</option>
+                                    <option value="7">Bulan 7 (Juli)</option>
+                                    <option value="8">Bulan 8 (Agustus)</option>
+                                    <option value="9">Bulan 9 (September)</option>
+                                    <option value="10">Bulan 10 (Oktober)</option>
+                                    <option value="11">Bulan 11 (November)</option>
+                                    <option value="12">Bulan 12 (Desember)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="text-xs">
+                            <label class="block font-bold text-slate-700 mb-1">Cakupan Task yang Dihitung</label>
+                            <select id="ePerfScope" onchange="window.updateEPerfOptions()" class="w-full p-2.5 bg-slate-50 border rounded-xl font-medium">
+                                <option value="INVOLVED">🙋 Hanya yang user ini terlibat (Lead / Support)</option>
+                                <option value="ALL">🌐 Semua task berkode ini (tanpa peduli peran)</option>
+                            </select>
+                        </div>
+
+                        <div class="bg-slate-50 p-4 rounded-2xl border space-y-2 text-xs">
+                            <div class="font-bold text-slate-800 flex justify-between">
+                                <span>📋 Tinjauan Teks Template (Preview Live):</span>
+                                <span id="ePerfTaskCountBadge" class="bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold">0 Dokumen/Task Cocok</span>
+                            </div>
+                            <div id="ePerfPreviewText" class="font-mono text-[11px] bg-white p-3 rounded-xl border leading-relaxed whitespace-pre-wrap text-slate-700"></div>
+                        </div>
+
+                        <button onclick="window.downloadReportWord()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl shadow transition flex items-center justify-center gap-2 text-xs">
+                            <span>📥 Download Laporan Word (.docx)</span>
+                        </button>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+
+    <div id="contactModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-900 text-sm sm:text-base" id="contactModalHeader">➕ Tambah Kontak Stakeholder</h3>
+                <button onclick="window.closeModal('contactModal')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+
+            <form onsubmit="window.submitContact(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="contactEditId">
+
+                <div>
+                    <label class="block font-semibold mb-1">Jenis Organisasi</label>
+                    <select id="contactOrgType" onchange="window.onContactOrgTypeChange()" class="w-full p-2.5 border rounded-xl font-bold bg-slate-50">
+                        <option value="PEMERINTAH">🏛️ Pemerintah / K/L</option>
+                        <option value="BADAN_USAHA">🏢 Badan Usaha</option>
+                        <option value="AKADEMISI">🎓 Akademisi</option>
+                        <option value="OTHER">📌 Other</option>
+                    </select>
+                </div>
+
+                <!-- Field khusus PEMERINTAH -->
+                <div id="contactGovFields" class="space-y-3">
+                    <div>
+                        <label class="block font-semibold mb-1">Nama Instansi</label>
+                        <input type="text" id="contactInstansi" placeholder="Contoh: Kementerian Pertanian / Kementerian Kehutanan" class="w-full p-2.5 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Unit Kerja <span class="text-slate-400 font-normal">(opsional)</span></label>
+                        <input type="text" id="contactUnitKerja" placeholder="Contoh: Ditjen Perkebunan" class="w-full p-2.5 border rounded-xl">
+                    </div>
+                </div>
+
+                <!-- Field khusus NON-PEMERINTAH -->
+                <div id="contactOrgFields" class="space-y-3 hidden">
+                    <div>
+                        <label class="block font-semibold mb-1">Nama Organisasi</label>
+                        <input type="text" id="contactOrganisasi" placeholder="Contoh: PT Perkebunan Nusantara / Universitas X" class="w-full p-2.5 border rounded-xl">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Nama Orang</label>
+                    <input type="text" id="contactPerson" required placeholder="Nama lengkap" class="w-full p-2.5 border rounded-xl">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Jabatan</label>
+                    <input type="text" id="contactJabatan" placeholder="Contoh: Direktur / Manajer / Dosen" class="w-full p-2.5 border rounded-xl">
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="block font-semibold mb-1">Jenis Nomor</label>
+                        <select id="contactNumberType" class="w-full p-2.5 border rounded-xl font-medium bg-slate-50">
+                            <option value="WA">💬 WhatsApp</option>
+                            <option value="TELP">📞 Telepon</option>
+                        </select>
+                    </div>
+                    <div class="col-span-2">
+                        <label class="block font-semibold mb-1">Nomor</label>
+                        <input type="tel" id="contactNumber" required placeholder="0812xxxxxxx" class="w-full p-2.5 border rounded-xl">
+                    </div>
+                </div>
+                <p class="text-[10px] text-slate-400 -mt-1">Untuk WhatsApp, nomor otomatis diubah ke format 62 (mis. 0812… → 62812…).</p>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl">Simpan Kontak</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="calActionModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <div>
+                    <h3 class="font-bold text-slate-900 text-sm sm:text-base">➕ Buat Aktivitas di Kalender</h3>
+                    <p class="text-xs text-blue-600 font-semibold" id="calActionDateTitle">Tanggal Terpilih</p>
+                </div>
+                <button onclick="window.closeModal('calActionModal')" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
+                <button onclick="window.calCreateTaskChoice()" class="p-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-800 rounded-2xl font-bold flex items-center gap-2.5 transition text-left">
+                    <span class="text-xl">📋</span>
+                    <div>
+                        <div>Task / Pekerjaan</div>
+                        <div class="text-[10px] font-normal text-blue-600">Assign / Propose Penugasan</div>
+                    </div>
+                </button>
+
+                <button onclick="window.calCreateDiscussionChoice()" class="p-3 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-800 rounded-2xl font-bold flex items-center gap-2.5 transition text-left">
+                    <span class="text-xl">💬</span>
+                    <div>
+                        <div>Plan Diskusi</div>
+                        <div class="text-[10px] font-normal text-indigo-600">Agenda Rapat Internal</div>
+                    </div>
+                </button>
+
+                <button onclick="window.calCreateTodoChoice()" class="p-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 rounded-2xl font-bold flex items-center gap-2.5 transition text-left">
+                    <span class="text-xl">☑️</span>
+                    <div>
+                        <div>To-Do List Tim</div>
+                        <div class="text-[10px] font-normal text-amber-600">Tugas Ringkas Harian</div>
+                    </div>
+                </button>
+
+                <button onclick="window.calCreatePresenceChoice()" class="p-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 rounded-2xl font-bold flex items-center gap-2.5 transition text-left">
+                    <span class="text-xl">✈️</span>
+                    <div>
+                        <div>Kehadiran / Out of Office</div>
+                        <div class="text-[10px] font-normal text-emerald-600">Cuti, Perjadin, WFH, dll.</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="presenceModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-900 text-sm sm:text-base">🌴 Tambah Status Kehadiran / Agenda Tim</h3>
+                <button onclick="window.closeModal('presenceModal')" class="text-slate-400 hover:text-slate-600 font-bold">✕</button>
+            </div>
+
+            <form onsubmit="window.submitNewPresence(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1">Kategori Aktivitas</label>
+                    <select id="presCategory" class="w-full p-2.5 border rounded-xl font-bold bg-slate-50">
+                        <option value="WFH">🏠 WFH (Work From Home)</option>
+                        <option value="PERJADIN_INDIVIDU">💼 Perjadin Individu</option>
+                        <option value="PERJADIN_TIM">✈️ Perjadin Tim (Seluruh Anggota)</option>
+                        <option value="CUTI">🌴 Cuti Pegawai</option>
+                        <option value="OTHER">📌 Other Activity / Tugas Luar Lain</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Judul / Keterangan Singkat</label>
+                    <input type="text" id="presTitle" required placeholder="Contoh: WFH Tim / Perjadin Dit. Pangan dan Pertanian ke Medan" class="w-full p-2.5 border rounded-xl">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Personil Terkait</label>
+                    <select id="presUser" class="w-full p-2.5 border rounded-xl font-medium"></select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold mb-1">Tanggal Mulai</label>
+                        <input type="date" id="presStartDate" required class="w-full p-2 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Tanggal Selesai</label>
+                        <input type="date" id="presEndDate" required class="w-full p-2 border rounded-xl">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Jadwal Rutin / Pengulangan (Recurrence)</label>
+                    <select id="presRecurring" onchange="window.handleRecurrenceSelectChange()" class="w-full p-2.5 border rounded-xl font-medium bg-slate-50">
+                        <option value="NONE">Does not repeat</option>
+                        <option value="DAILY">Daily</option>
+                        <option value="WEEKLY">Weekly on Friday</option>
+                        <option value="MONTHLY">Monthly on the first Friday</option>
+                        <option value="ANNUALLY">Annually</option>
+                        <option value="WEEKDAYS">Every weekday (Monday to Friday)</option>
+                        <option value="CUSTOM">Custom...</option>
+                    </select>
+                    <div id="customRecurrenceSummary" class="text-[11px] text-blue-600 font-semibold mt-1 hidden"></div>
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl transition">
+                    Simpan Presensi / Agenda
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL CUSTOM RECURRENCE -->
+    <div id="customRecurrenceModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-xl max-w-sm w-full p-6 space-y-5">
+            <h3 class="font-bold text-slate-900 text-base">Custom recurrence</h3>
+
+            <div class="space-y-4 text-xs">
+                <div class="flex items-center gap-2">
+                    <span class="text-slate-600 font-medium">Repeat every</span>
+                    <input type="number" id="customRepeatInterval" value="1" min="1" class="w-14 p-2 border rounded-xl text-center font-bold">
+                    <select id="customRepeatFreq" onchange="window.toggleDaysSelection()" class="p-2 border rounded-xl font-medium bg-slate-50">
+                        <option value="WEEK">week</option>
+                        <option value="DAY">day</option>
+                        <option value="MONTH">month</option>
+                        <option value="YEAR">year</option>
+                    </select>
+                </div>
+
+                <div id="customDaysGroup" class="space-y-1.5">
+                    <div class="text-slate-600 font-medium">Repeat on</div>
+                    <div class="flex justify-between gap-1">
+                        <button type="button" onclick="window.toggleDayBtn(this, 1)" class="w-8 h-8 rounded-full border font-bold text-xs bg-slate-100 text-slate-600">M</button>
+                        <button type="button" onclick="window.toggleDayBtn(this, 2)" class="w-8 h-8 rounded-full border font-bold text-xs bg-slate-100 text-slate-600">T</button>
+                        <button type="button" onclick="window.toggleDayBtn(this, 3)" class="w-8 h-8 rounded-full border font-bold text-xs bg-slate-100 text-slate-600">W</button>
+                        <button type="button" onclick="window.toggleDayBtn(this, 4)" class="w-8 h-8 rounded-full border font-bold text-xs bg-slate-100 text-slate-600">T</button>
+                        <button type="button" onclick="window.toggleDayBtn(this, 5)" class="w-8 h-8 rounded-full border font-bold text-xs bg-slate-100 text-slate-600">F</button>
+                        <button type="button" onclick="window.toggleDayBtn(this, 6)" class="w-8 h-8 rounded-full border font-bold text-xs bg-slate-100 text-slate-600">S</button>
+                        <button type="button" onclick="window.toggleDayBtn(this, 0)" class="w-8 h-8 rounded-full border font-bold text-xs bg-slate-100 text-slate-600">S</button>
+                    </div>
+                </div>
+
+                <div class="space-y-2 pt-1 border-t">
+                    <div class="text-slate-600 font-medium">Ends</div>
+
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="customEndType" value="NEVER" checked onchange="window.toggleEndInputs()">
+                        <span>Never</span>
+                    </label>
+
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="customEndType" value="ON" onchange="window.toggleEndInputs()">
+                        <span>On</span>
+                        <input type="date" id="customEndDate" class="p-1.5 border rounded-xl text-xs ml-auto text-slate-600" disabled>
+                    </label>
+
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="customEndType" value="AFTER" onchange="window.toggleEndInputs()">
+                        <span>After</span>
+                        <div class="flex items-center gap-1 ml-auto">
+                            <input type="number" id="customEndOccurrences" value="13" min="1" class="w-14 p-1.5 border rounded-xl text-center text-xs" disabled>
+                            <span class="text-slate-500">occurrences</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2 border-t">
+                <button type="button" onclick="window.closeCustomRecurrenceModal(false)" class="px-4 py-2 text-blue-600 font-bold hover:bg-blue-50 rounded-xl transition text-xs">Cancel</button>
+                <button type="button" onclick="window.closeCustomRecurrenceModal(true)" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow transition text-xs">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="adminCodeModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-red-600 text-sm sm:text-base flex items-center gap-2">
+                    <span>🛡️</span> Admin: Kelola Kode Kategori
+                </h3>
+                <button onclick="window.closeModal('adminCodeModal')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+
+            <form onsubmit="window.submitNewCategoryCode(event)" class="space-y-3 text-xs bg-slate-50 p-3.5 rounded-2xl border">
+                <div class="font-bold text-slate-800 border-b pb-1.5">➕ Tambah Kode Kategori Baru</div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold mb-1">Tahun Berlaku</label>
+                        <input type="number" id="newCodeYear" required value="2026" class="w-full p-2 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Nomor Kode (misal: 009)</label>
+                        <input type="text" id="newCodeNumber" required placeholder="009" class="w-full p-2 border rounded-xl">
+                    </div>
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Nama / Arti Kategori Pekerjaan</label>
+                    <textarea id="newCodeDesc" rows="2" required placeholder="Masukkan uraian lengkap kategori pekerjaan..." class="w-full p-2 border rounded-xl"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 rounded-xl transition">
+                    Simpan Kode Kategori Baru
+                </button>
+            </form>
+
+            <div class="space-y-2 text-xs">
+                <div class="font-bold text-slate-800">📋 Daftar Kode Kategori Tersimpan:</div>
+                <div id="adminCodeListContainer" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ADMIN: KELOLA AKUN & PASSWORD -->
+    <div id="accountAdminModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-800 text-sm sm:text-base flex items-center gap-2">
+                    <span>👥</span> Admin: Kelola Akun & Password
+                </h3>
+                <button onclick="window.closeModal('accountAdminModal')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+
+            <form onsubmit="window.submitNewAccount(event)" class="space-y-3 text-xs bg-slate-50 p-3.5 rounded-2xl border">
+                <div class="font-bold text-slate-800 border-b pb-1.5">➕ Tambah Akun Baru</div>
+                <div>
+                    <label class="block font-semibold mb-1">Nama Lengkap / Panggilan</label>
+                    <input type="text" id="accName" required placeholder="Contoh: Budi Santoso" class="w-full p-2 border rounded-xl">
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold mb-1">Peran / Role</label>
+                        <select id="accRole" class="w-full p-2 border rounded-xl bg-white font-medium">
+                            <option value="staff">Staff</option>
+                            <option value="koordinator">Koordinator Tim</option>
+                            <option value="admin">Admin (Moderator)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Email Login</label>
+                        <input type="email" id="accEmail" required placeholder="nama@worktrack.local" class="w-full p-2 border rounded-xl">
+                    </div>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-2 text-[10px] text-amber-800 leading-relaxed">
+                    ⚠️ Penting: buat juga akun login dengan email ini di <b>Firebase Console → Authentication → Users</b> (beserta passwordnya) agar profil ini bisa dipakai login.
+                </div>
+                <button type="submit" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl transition">
+                    Simpan Profil Akun
+                </button>
+            </form>
+
+            <div class="space-y-2 text-xs">
+                <div class="font-bold text-slate-800">📋 Daftar Akun Terdaftar:</div>
+                <div id="accountAdminListContainer" class="space-y-1.5 max-h-64 overflow-y-auto pr-1"></div>
+                <div class="text-[10px] text-slate-400 leading-relaxed pt-1 border-t">
+                    Catatan: <b>password dikelola Firebase Authentication</b> (bukan di aplikasi ini). Panel ini mengatur profil, peran (role), dan email login. Untuk <b>buat akun login baru</b> dan <b>reset password</b>, gunakan Firebase Console → Authentication → Users.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="proposeTaskModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-900 text-sm sm:text-base">💡 Propose Pekerjaan Baru</h3>
+                <button onclick="window.closeModal('proposeTaskModal')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            <form onsubmit="window.submitProposeTask(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1">Usulan Judul Pekerjaan</label>
+                    <input type="text" id="propTitle" required placeholder="Contoh: Rapat Pembahasan Hilirisasi Kelapa Sawit" class="w-full p-2.5 border rounded-xl">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Lingkup Task</label>
+                    <select id="propScope" class="w-full p-2.5 border rounded-xl font-medium bg-slate-50">
+                        <option value="INTERNAL">🏠 Internal Tim</option>
+                        <option value="LINTAS_TIM">🌐 Lintas Tim</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Jenis Task / Output Pekerjaan</label>
+                    <select id="propTaskType" class="w-full p-2.5 border rounded-xl font-medium">
+                        <option value="📊 Bahan Paparan">📊 Bahan Paparan / Slide Presentation</option>
+                        <option value="📝 Nota Dinas">📝 Nota Dinas / Surat Dinas</option>
+                        <option value="📄 Laporan / Resume">📄 Laporan / Resume / Briefing Note</option>
+                        <option value="📑 Matriks / Tabel">📑 Matriks / Tabel Perbandingan</option>
+                        <option value="📜 Draft Regulasi/SK">📜 Draft Peraturan / SK / Naskah Dinas</option>
+                        <option value="📌 Lain-lain">📌 Lain-lain / Penugasan Khusus</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Kode Kategori Pekerjaan</label>
+                    <select id="propCategoryCode" class="w-full p-2 border rounded-xl"></select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Link Pengerjaan / Draft (Opsional)</label>
+                    <input type="url" id="propDocLink" placeholder="https://drive.google.com/..." class="w-full p-2.5 border rounded-xl">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Alasan / Gambaran Tugas</label>
+                    <textarea id="propDesc" rows="3" required placeholder="Jelaskan gambaran singkat tugas ini..." class="w-full p-2 border rounded-xl"></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2.5 rounded-xl">Kirim Usulan ke Koordinator</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="taskModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-900 text-sm sm:text-base" id="taskModalHeader">Assign Task Baru</h3>
+                <button onclick="window.closeModal('taskModal')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+
+            <form onsubmit="window.submitNewTask(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="editTaskId">
+
+                <div>
+                    <label class="block font-semibold mb-1">Judul Pekerjaan</label>
+                    <input type="text" id="taskTitle" required placeholder="Contoh: Rapat Pembahasan Hilirisasi Kelapa Sawit" class="w-full p-2.5 border rounded-xl">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Lingkup Task</label>
+                    <select id="taskScope" onchange="window.toggleScopeLinks()" class="w-full p-2.5 border rounded-xl font-medium bg-slate-50">
+                        <option value="INTERNAL">🏠 Internal Tim</option>
+                        <option value="LINTAS_TIM">🌐 Lintas Tim</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Jenis Task / Output Pekerjaan</label>
+                    <select id="taskTaskType" class="w-full p-2.5 border rounded-xl font-medium">
+                        <option value="📊 Bahan Paparan">📊 Bahan Paparan / Slide Presentation</option>
+                        <option value="📝 Nota Dinas">📝 Nota Dinas / Surat Dinas</option>
+                        <option value="📄 Laporan / Resume">📄 Laporan / Resume / Briefing Note</option>
+                        <option value="📑 Matriks / Tabel">📑 Matriks / Tabel Perbandingan</option>
+                        <option value="📜 Draft Regulasi/SK">📜 Draft Peraturan / SK / Naskah Dinas</option>
+                        <option value="📌 Lain-lain">📌 Lain-lain / Penugasan Khusus</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Kode Kategori Pekerjaan</label>
+                    <select id="taskCategoryCode" class="w-full p-2 border rounded-xl"></select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Penanggung Jawab (Lead Staff)</label>
+                    <select id="taskLead" required class="w-full p-2 border rounded-xl"></select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Staff Pendukung / Support</label>
+                    <div id="taskSupportCheckboxes" class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-xl border"></div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Deadline Pekerjaan</label>
+                    <input type="datetime-local" id="taskDeadline" required class="w-full p-2 border rounded-xl">
+                </div>
+
+                <div id="link1Container">
+                    <label class="block font-semibold mb-1">Link Dokumen Utama (Opsional)</label>
+                    <input type="url" id="taskDocLink" placeholder="https://..." class="w-full p-2.5 border rounded-xl">
+                </div>
+
+                <div id="link2Container" class="hidden">
+                    <label class="block font-semibold mb-1 text-purple-700">Link Dokumen Lintas Tim (Opsional)</label>
+                    <input type="url" id="taskDocLink2" placeholder="https://..." class="w-full p-2.5 border border-purple-200 rounded-xl bg-purple-50/50">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Arahan & Deskripsi Tugas</label>
+                    <textarea id="taskDesc" rows="3" required placeholder="Tuliskan arahan detail..." class="w-full p-2 border rounded-xl"></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2.5 rounded-xl">Simpan & Assign Task</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="staffDetailModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-900 text-sm sm:text-base flex items-center gap-2" id="stModalHeader">
+                    <span>✏️</span> Edit Rincian & Link Task
+                </h3>
+                <button onclick="window.closeModal('staffDetailModal')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+
+            <form onsubmit="window.submitStaffTaskDetails(event)" class="space-y-3.5 text-xs">
+                <input type="hidden" id="stDetailTaskId">
+
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Judul Pekerjaan / Dokumen Utama</label>
+                    <input type="text" id="stTitle" required placeholder="Rapat Pembahasan Hilirisasi Kelapa Sawit" class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Lingkup Task</label>
+                    <select id="stScope" onchange="window.toggleStScopeLinks()" class="w-full p-2.5 border rounded-xl font-medium bg-slate-50">
+                        <option value="INTERNAL">🏠 Internal Tim</option>
+                        <option value="LINTAS_TIM">🌐 Lintas Tim</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Jenis Task / Output Pekerjaan</label>
+                    <select id="stTaskType" class="w-full p-2.5 border rounded-xl font-medium bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="📊 Bahan Paparan">📊 Bahan Paparan / Slide Presentation</option>
+                        <option value="📝 Nota Dinas">📝 Nota Dinas / Surat Dinas</option>
+                        <option value="📄 Laporan / Resume">📄 Laporan / Resume / Briefing Note</option>
+                        <option value="📑 Matriks / Tabel">📑 Matriks / Tabel Perbandingan</option>
+                        <option value="📜 Draft Regulasi/SK">📜 Draft Peraturan / SK / Naskah Dinas</option>
+                        <option value="📌 Lain-lain">📌 Lain-lain / Penugasan Khusus</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Kode Kategori Pekerjaan</label>
+                    <select id="stCategoryCode" class="w-full p-2.5 border rounded-xl font-medium bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none"></select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Link Dokumen Utama (Drive/OneDrive)</label>
+                    <input type="url" id="stLink" placeholder="https://..." class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <div id="stLink2Container" class="hidden">
+                    <label class="block font-semibold mb-1 text-purple-700">Link Dokumen Lintas Tim (Opsional)</label>
+                    <input type="url" id="stLink2" placeholder="https://..." class="w-full p-2.5 border border-purple-200 rounded-xl bg-purple-50/50">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Daftar Section / Poin Isi Utama</label>
+                    <textarea id="stSections" rows="3" placeholder="Tuliskan poin muatan substansi..." class="w-full p-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1 text-slate-700">Kata / Kalimat Kunci (Pisahkan dengan koma)</label>
+                    <input type="text" id="stKeywords" required placeholder="Kelapa Sawit, Hilirisasi, Catatan Rapat" class="w-full p-2.5 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <button type="submit" id="stSubmitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl shadow transition text-xs mt-2">
+                    Simpan Perubahan
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div id="chatModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-lg w-full flex flex-col h-[90vh] sm:h-[520px] min-w-0">
+            <div class="p-3.5 sm:p-4 border-b flex justify-between items-center bg-slate-50 rounded-t-2xl relative pr-12">
+                <div class="min-w-0 flex-grow pr-2">
+                    <h3 class="font-bold text-slate-900 text-xs sm:text-sm leading-snug truncate" id="chatTaskTitle">Diskusi Pekerjaan</h3>
+                    <p class="text-[10px] text-slate-500 mt-0.5 truncate">Gunakan <b class="text-blue-600">@Nama</b> untuk men-tag teman</p>
+                </div>
+                <button onclick="window.closeModal('chatModal')" class="absolute top-3.5 right-3.5 text-slate-400 hover:text-slate-700 font-bold p-1 text-base leading-none" title="Tutup">✕</button>
+            </div>
+
+            <div id="chatMessageList" class="flex-grow p-3 sm:p-4 overflow-y-auto space-y-3 text-xs bg-slate-100/50 min-w-0"></div>
+
+            <div class="p-2.5 sm:p-3 border-t bg-white rounded-b-2xl flex-shrink-0">
+                <form id="chatFormContainer" onsubmit="window.sendMessage(event)" class="flex gap-1.5 sm:gap-2">
+                    <input type="hidden" id="chatTaskId">
+                    <input type="text" id="chatInputText" required placeholder="Tuliskan pesan / @tag..." class="flex-grow min-w-0 px-3 py-2 text-xs bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="submit" class="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-xl text-xs font-semibold hover:bg-blue-700 whitespace-nowrap flex-shrink-0">Kirim ➔</button>
+                </form>
+                <div id="chatReadOnlyNotice" class="hidden text-center text-slate-400 text-[11px] py-1.5 bg-slate-50 rounded-xl border border-slate-200">
+                    🔒 Task ini berstatus <b>DONE / ARSIP</b>. Histori chat bersifat <i>Read-Only</i>.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="revisionModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-red-600 text-xs sm:text-sm">🔄 Arahan Revisi Pekerjaan</h3>
+                <button onclick="window.closeModal('revisionModal')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+
+            <form onsubmit="window.submitRevision(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="revTaskId">
+                <div>
+                    <label class="block font-semibold mb-1">Catatan Revisi / Poin Perbaikan</label>
+                    <textarea id="revNotes" rows="4" required placeholder="Tuliskan poin-poin perbaikan..." class="w-full p-2.5 border rounded-xl"></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-xl">Kirim Revisi ke Staff</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="recallToActiveModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-orange-600 text-xs sm:text-sm">↩️ Kembalikan Task ke Aktif (Back Progress)</h3>
+                <button onclick="window.closeModal('recallToActiveModal')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+
+            <form onsubmit="window.submitRecallToActive(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="recallTaskId">
+                <div class="bg-orange-50 border border-orange-200 rounded-xl p-2.5 text-[11px] text-orange-800">
+                    Task akan keluar dari Arsip dan kembali ke <b>Task Aktif</b> dengan status <b>BACK_PROGRESS</b>. Koordinator & staff terkait akan menerima notifikasi untuk menyelesaikannya kembali.
+                </div>
+                <div>
+                    <label class="block font-semibold mb-1">Alasan Pengembalian (Reason) <span class="text-red-500">*</span></label>
+                    <textarea id="recallReason" rows="4" required placeholder="Contoh: Ada tambahan data terbaru dari Kementan, mohon perbarui matriks & link dokumen." class="w-full p-2.5 border rounded-xl"></textarea>
+                </div>
+
+                <button type="submit" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-2.5 rounded-xl">Kembalikan ke Task Aktif</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="finishDiscussionModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-900 text-xs sm:text-sm">✓ Selesaikan Diskusi & Isi MoM</h3>
+                <button onclick="window.closeModal('finishDiscussionModal')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+
+            <form onsubmit="window.submitFinishDiscussion(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="finDiscId">
+                <div>
+                    <label class="block font-semibold mb-1">Isi MoM Internal / Rangkuman Rapat</label>
+                    <textarea id="finDiscSummary" rows="3" required placeholder="Masukkan kesimpulan rapat..." class="w-full p-2.5 border rounded-xl"></textarea>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">List To-Do Hasil Rapat (Pisahkan Koma)</label>
+                    <input type="text" id="finDiscTodoList" placeholder="Konfirmasi data produksi, Hubungi Ditjen Perkebunan" class="w-full p-2.5 border rounded-xl">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Tag / Assign To-Do ke Siapa?</label>
+                    <select id="finDiscAssignee" class="w-full p-2 border rounded-xl"></select>
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl">Simpan MoM & To-Do</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="addTodoModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-900 text-xs sm:text-sm">➕ Tambah To-Do List Baru</h3>
+                <button onclick="window.closeModal('addTodoModal')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+
+            <form onsubmit="window.submitNewTodo(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1">Item Pekerjaan</label>
+                    <input type="text" id="todoTitle" required placeholder="Contoh: Menghubungi pihak Ditjen Tanaman Pangan" class="w-full p-2.5 border rounded-xl">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Target Tanggal Pelaksanaan</label>
+                    <input type="date" id="todoDate" class="w-full p-2 border rounded-xl">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Tag / Ditugaskan Kepada</label>
+                    <select id="todoAssignee" class="w-full p-2 border rounded-xl"></select>
+                </div>
+
+                <button type="submit" class="w-full bg-amber-600 text-white font-semibold py-2.5 rounded-xl">Simpan To-Do List</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="discussionModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-900 text-sm sm:text-base">Plan Diskusi Baru</h3>
+                <button onclick="window.closeModal('discussionModal')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+
+            <form onsubmit="window.submitNewDiscussion(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-semibold mb-1">Topik Agenda Diskusi</label>
+                    <input type="text" id="discTopic" required placeholder="Diskusi Hilirisasi Pertanian & Agenda" class="w-full p-2.5 border rounded-xl">
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block font-semibold mb-1">Tanggal</label>
+                        <input type="date" id="discDate" class="w-full p-2 border rounded-xl">
+                    </div>
+                    <div>
+                        <label class="block font-semibold mb-1">Waktu</label>
+                        <input type="time" id="discTime" class="w-full p-2 border rounded-xl">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-2.5 rounded-xl">Simpan Plan Diskusi</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="workRecallModal" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-5 sm:p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b pb-3">
+                <h3 class="font-bold text-slate-900 text-sm sm:text-base" id="wrModalHeader">Indeks Work Recall Manual</h3>
+                <button onclick="window.closeModal('workRecallModal')" class="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+
+            <form onsubmit="window.submitManualWorkRecall(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="wrEditId">
+                <div>
+                    <label class="block font-semibold mb-1">Judul Pekerjaan / Dokumen</label>
+                    <input type="text" id="wrTitle" required placeholder="Contoh: Resume Kajian Hilirisasi Kakao Sulawesi" class="w-full p-2.5 border rounded-xl">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Jenis Task / Output Pekerjaan</label>
+                    <select id="wrTaskType" class="w-full p-2.5 border rounded-xl font-medium">
+                        <option value="📊 Bahan Paparan">📊 Bahan Paparan / Slide Presentation</option>
+                        <option value="📝 Nota Dinas">📝 Nota Dinas / Surat Dinas</option>
+                        <option value="📄 Laporan / Resume">📄 Laporan / Resume / Briefing Note</option>
+                        <option value="📑 Matriks / Tabel">📑 Matriks / Tabel Perbandingan</option>
+                        <option value="📜 Draft Regulasi/SK">📜 Draft Peraturan / SK / Naskah Dinas</option>
+                        <option value="📌 Lain-lain">📌 Lain-lain / Penugasan Khusus</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Kode Kategori Pekerjaan</label>
+                    <select id="wrCategoryCode" class="w-full p-2 border rounded-xl"></select>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Link Dokumen (Drive/OneDrive)</label>
+                    <input type="url" id="wrLink" placeholder="https://..." class="w-full p-2.5 border rounded-xl">
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Daftar Section / Poin Isi Utama</label>
+                    <textarea id="wrSections" rows="3" placeholder="Contoh:&#10;- Slide 3: Matriks Sentra Produksi Kakao" class="w-full p-2 border rounded-xl"></textarea>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Kata / Kalimat Kunci (Pisahkan koma)</label>
+                    <input type="text" id="wrKeywords" required placeholder="kakao, sulawesi, hilirisasi" class="w-full p-2.5 border rounded-xl">
+                </div>
+
+                <button type="submit" class="w-full bg-slate-800 text-white font-semibold py-2.5 rounded-xl">Simpan ke Archive Recall</button>
+            </form>
+        </div>
+    </div>
+    <!-- APPLICATION ENGINE (dipecah per modul) -->
+    <script src="js/config.js"></script>
+    <script src="js/notifications.js"></script>
+    <script src="js/tasks.js"></script>
+    <script src="js/planner.js"></script>
+    <script src="js/records.js"></script>
+    <script src="js/eperformance.js"></script>
+    <script src="js/contacts.js"></script>
+    <!-- Core Firebase + login + sinkronisasi data.
+         Ditaruh inline (module) agar situs jalan baik dibuka lokal (file://) maupun online. -->
+    <script type="module">
+// WorkTrack Tim Agrikultur (H2) — app-core (MODULE) : Firebase, login, sinkronisasi data (SATU PINTU DATA)
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, setPersistence, browserLocalPersistence, signInWithEmailAndPassword, signOut, onAuthStateChanged, updatePassword } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        var lastTaskSnapshot = null;
+        var lastTodoSnapshot = null;
+
+        // ============================================================
+        // 2. FIREBASE CONFIG & INIT — WAJIB DIGANTI
+        // Salin dari Firebase Console project BARU Tim Agrikultur (H2):
+        // Project Settings → General → Your apps → Web app → SDK setup and configuration → Config
+        // JANGAN pakai config WorkTrack H3 (worktrackh3), agar data kedua tim tidak tercampur.
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIYfIdB6YrWnEAqFSKDn-1ltWnzUbTjhE",
+            authDomain: "worktrackh2.firebaseapp.com",
+            projectId: "worktrackh2",
+            storageBucket: "worktrackh2.firebasestorage.app",
+            messagingSenderId: "92580426000",
+            appId: "1:92580426000:web:944de06ea2c43a446cf595",
+            measurementId: "G-DPNDDW1CS7"
+        };
+        window._firebaseConfigured = firebaseConfig.apiKey.indexOf('GANTI_') !== 0;
+        if (!window._firebaseConfigured) {
+            console.error('[WorkTrack H2] firebaseConfig belum diisi. Edit bagian FIREBASE CONFIG di index.html.');
+        }
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Firebase Authentication: sesi disimpan lokal (login sekali, tetap masuk
+        // walau refresh / tutup-buka browser, sampai klik Logout).
+        const auth = getAuth(app);
+        window._auth = auth;
+        window._fbUser = null;
+        setPersistence(auth, browserLocalPersistence).catch(function(e) { console.warn('Persistence:', e); });
+
+        // Sambungkan kembali sesi login yang masih aktif ke profil aplikasi.
+        window.tryResumeSession = function() {
+            if (window.currentUser) return;
+            if (!window._fbUser) return;
+            var profiles = window.getLoginProfiles();
+            if (!profiles || !profiles.length) return;
+            var email = (window._fbUser.email || '').toLowerCase();
+            var acc = profiles.find(function(a) { return window.getAuthEmail(a).toLowerCase() === email; });
+            if (acc) {
+                window.currentUser = { id: acc.id, name: acc.name, role: acc.role, label: acc.label };
+                window.initDashboard();
+            }
+        };
+
+        const docRef = doc(db, "worktrack_data", "main_store");
+        window._unsubSnapshot = null;
+
+        window.stopRealtimeSync = function() {
+            if (window._unsubSnapshot) { try { window._unsubSnapshot(); } catch (e) {} window._unsubSnapshot = null; }
+        };
+
+        onAuthStateChanged(auth, function(fbUser) {
+            window._fbUser = fbUser || null;
+            if (fbUser) {
+                window.startRealtimeSync();   // pasang listener HANYA setelah login (token valid)
+                window.tryResumeSession();
+            } else {
+                window.stopRealtimeSync();
+            }
+        });
+
+        // 3. LISTENERS REALTIME CLOUD (dipasang setelah user terautentikasi,
+        //    supaya tidak ditolak Firestore Rules & data langsung masuk tanpa refresh)
+        window.startRealtimeSync = function() {
+            if (window._unsubSnapshot) return; // sudah aktif
+            window._unsubSnapshot = onSnapshot(docRef, (snapshot) => {
+            if (snapshot.exists()) {
+                const data = snapshot.data();
+
+                if (lastTaskSnapshot && window.currentUser) {
+                    window.checkAndTriggerNotifications(lastTaskSnapshot, data.tasks || []);
+                }
+                if (lastTodoSnapshot && window.currentUser) {
+                    window.checkTodoNotifications(lastTodoSnapshot, data.todoList || []);
+                }
+
+                window.tasks = data.tasks || [];
+                window.discussions = data.discussions || [];
+                window.todoList = data.todoList || [];
+                window.manualRecall = data.manualRecall || [];
+                window.categoryCodes = data.categoryCodes || [];
+                window.presences = data.presences || [];
+                window.contacts = data.contacts || [];
+
+                // --- AKUN ---
+                window.accounts = data.accounts || [];
+                if (window.accounts.length) {
+                    window.USERS = window.accounts.map(function(a) {
+                        return { id: a.id, name: a.name, role: a.role, label: a.label };
+                    });
+                    // Cache profil (tanpa rahasia apa pun) supaya layar login tetap
+                    // bisa tampil walau nanti database dikunci Firestore Rules.
+                    try {
+                        var lite = window.accounts.map(function(a) {
+                            return { id: a.id, name: a.name, role: a.role, label: a.label, email: window.getAuthEmail(a) };
+                        });
+                        localStorage.setItem(window.storageKey('profiles_cache'), JSON.stringify(lite));
+                    } catch (e) {}
+                } else {
+                    window.USERS = window.DEFAULT_USERS.slice();
+                    window.seedDefaultAccounts(); // dokumen ada tapi belum ada akun -> seed
+                }
+
+                lastTaskSnapshot = JSON.parse(JSON.stringify(window.tasks));
+                lastTodoSnapshot = JSON.parse(JSON.stringify(window.todoList));
+                window.renderAll();
+
+                // Login screen (jika belum login): render daftar akun + resume sesi Auth
+                if (!window.currentUser) {
+                    window.renderLoginAccounts();
+                    window.tryResumeSession();
+                } else {
+                    // Jika akun yang sedang login dihapus / diubah role oleh admin lain
+                    var me = window.accounts.find(function(a) { return a.id === window.currentUser.id; });
+                    if (window.accounts.length && !me) {
+                        alert('Akun Anda telah dihapus oleh admin. Anda akan keluar.');
+                        window.logout();
+                        return;
+                    }
+                }
+
+                if (window.currentUser) window.checkDeadlineReminders();
+            } else {
+                // Dokumen belum ada sama sekali -> seed akun default agar login bisa jalan
+                window.seedDefaultAccounts();
+            }
+        }, (error) => {
+            // Dengan Firestore Rules yang ketat, membaca data sebelum login akan ditolak.
+            // Ini NORMAL: tampilkan layar pilih profil dari cache/daftar default.
+            console.warn('Sync error (normal jika sesaat sebelum login):', error && error.code);
+            if (!window.currentUser) window.renderLoginAccounts();
+        });
+        };
+
+        async function syncToFirebase() {
+            try {
+                await setDoc(docRef, {
+                    tasks: window.tasks,
+                    discussions: window.discussions,
+                    todoList: window.todoList,
+                    manualRecall: window.manualRecall,
+                    categoryCodes: window.categoryCodes,
+                    presences: window.presences,
+                    contacts: window.contacts,
+                    accounts: window.accounts,
+                    lastUpdated: new Date().toISOString()
+                });
+            } catch (e) {
+                console.error("Cloud Sync Error: ", e);
+            }
+        }
+        window.saveData = syncToFirebase;
+
+        // Seed profil default (sekali). Password TIDAK disimpan di sini —
+        // password dikelola oleh Firebase Authentication (dibuat di Console).
+        window.seedDefaultAccounts = async function() {
+            if (window._seedingAccounts) return;
+            if (window.accounts && window.accounts.length) return;
+            window._seedingAccounts = true;
+            try {
+                window.accounts = window.DEFAULT_USERS.map(function(u) {
+                    return { id: u.id, name: u.name, role: u.role, label: u.label, email: window.AUTH_EMAIL_MAP[u.id] || (u.id + '@' + window.TEAM_CONFIG.emailDomain) };
+                });
+                window.USERS = window.accounts.map(function(a) {
+                    return { id: a.id, name: a.name, role: a.role, label: a.label };
+                });
+                await window.saveData();
+                window.renderLoginAccounts();
+            } catch (e) {
+                console.error("Seed accounts error:", e);
+            }
+            window._seedingAccounts = false;
+        };
+
+        // ============================================================
+        // LOGIN FLOW (dengan password)
+        // ============================================================
+        window.renderLoginAccounts = function() {
+            var container = document.getElementById('accountListContainer');
+            if (!container) return;
+            var list = null;
+            if (window.accounts && window.accounts.length) {
+                list = window.accounts;
+            } else {
+                try {
+                    var cached = JSON.parse(localStorage.getItem(window.storageKey('profiles_cache')) || 'null');
+                    if (cached && cached.length) list = cached;
+                } catch (e) {}
+            }
+            if (!list || !list.length) list = window.DEFAULT_USERS;
+            if (!list.length) {
+                container.innerHTML = '<div class="text-center text-xs text-slate-400 py-6">Belum ada akun.</div>';
+                return;
+            }
+            container.innerHTML = list.map(function(u) {
+                var isAdmin = u.role === 'admin';
+                var icon = isAdmin ? '🛡️' : (u.role === 'koordinator' ? '👤' : '👨‍💻');
+                var hoverColor = isAdmin ? 'hover:bg-red-50 hover:border-red-300' : 'hover:bg-blue-50 hover:border-blue-400';
+                var nameColor = isAdmin ? 'text-red-600' : 'text-slate-800 group-hover:text-blue-600';
+                var btnHover = isAdmin ? 'group-hover:bg-red-600 group-hover:border-red-600' : 'group-hover:bg-blue-600 group-hover:border-blue-600';
+                return '<button type="button" onclick="window.selectAccount(\'' + u.id + '\')" class="w-full text-left p-3.5 bg-slate-50 ' + hoverColor + ' border border-slate-200 rounded-2xl transition flex items-center justify-between group">' +
+                    '<div class="flex items-center gap-3">' +
+                        '<div class="w-10 h-10 rounded-xl bg-white border flex items-center justify-center text-lg shadow-sm">' + icon + '</div>' +
+                        '<div>' +
+                            '<div class="font-bold text-sm ' + nameColor + ' transition">' + u.name + '</div>' +
+                            '<div class="text-[11px] text-slate-400">' + (u.label || '') + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    '<span class="text-xs font-semibold bg-white px-3 py-1.5 rounded-xl border text-slate-600 group-hover:text-white ' + btnHover + ' transition">Masuk ➔</span>' +
+                '</button>';
+            }).join('');
+        };
+
+        window.selectAccount = function(userId) {
+            var acc = window.getLoginProfiles().find(function(u) { return u.id === userId; });
+            if (!acc) return;
+            window._pendingLoginId = userId;
+
+            document.getElementById('loginStepAccounts').classList.add('hidden');
+            document.getElementById('loginStepPassword').classList.remove('hidden');
+
+            document.getElementById('loginSelectedName').innerText = acc.name;
+            document.getElementById('loginSelectedRole').innerText = acc.label || '';
+            document.getElementById('loginSelectedAvatar').innerText = (acc.name || '?').charAt(0);
+
+            var err = document.getElementById('loginError');
+            if (err) { err.classList.add('hidden'); err.innerText = ''; }
+            var inp = document.getElementById('loginPasswordInput');
+            if (inp) { inp.value = ''; setTimeout(function() { inp.focus(); }, 60); }
+        };
+
+        window.backToAccounts = function() {
+            window._pendingLoginId = null;
+            document.getElementById('loginStepPassword').classList.add('hidden');
+            document.getElementById('loginStepAccounts').classList.remove('hidden');
+        };
+
+        window.submitLogin = async function(e) {
+            if (e) e.preventDefault();
+            var err = document.getElementById('loginError');
+
+            if (!window._firebaseConfigured) {
+                if (err) { err.innerText = '⚙️ Aplikasi belum terhubung ke database. Admin perlu mengisi firebaseConfig project H2 di index.html.'; err.classList.remove('hidden'); }
+                return;
+            }
+
+            var userId = window._pendingLoginId;
+            var acc = window.getLoginProfiles().find(function(u) { return u.id === userId; });
+
+            if (!acc) {
+                if (err) { err.innerText = 'Data akun belum termuat. Tunggu beberapa detik lalu coba lagi.'; err.classList.remove('hidden'); }
+                return;
+            }
+
+            var email = window.getAuthEmail(acc);
+            var pw = document.getElementById('loginPasswordInput').value;
+            var inp = document.getElementById('loginPasswordInput');
+
+            if (err) { err.classList.add('hidden'); err.innerText = ''; }
+            if (inp) inp.disabled = true;
+
+            try {
+                await signInWithEmailAndPassword(window._auth, email, pw);
+                // Sukses: onAuthStateChanged akan resume; set langsung juga agar responsif.
+                window.currentUser = { id: acc.id, name: acc.name, role: acc.role, label: acc.label };
+                window.initDashboard();
+            } catch (e2) {
+                if (err) { err.innerText = window.mapAuthError(e2); err.classList.remove('hidden'); }
+            } finally {
+                if (inp) { inp.disabled = false; }
+            }
+        };
+
+        window.initDashboard = function() {
+            window.requestNotificationPermission();
+            window.updateNotifButton();
+
+            document.getElementById('loginModal').classList.add('hidden');
+            document.getElementById('appContainer').classList.remove('hidden');
+
+            document.getElementById('sidebarUserName').innerText = window.currentUser.name;
+            document.getElementById('sidebarUserRole').innerText = window.currentUser.label;
+            document.getElementById('topGreetingName').innerText = window.currentUser.name;
+            document.getElementById('userAvatar').innerText = window.currentUser.name.charAt(0);
+
+            if (window.currentUser.role === 'staff') {
+                document.getElementById('btnProposeTask').classList.remove('hidden');
+                document.getElementById('btnAssignTask').classList.add('hidden');
+            } else if (window.currentUser.role === 'koordinator' || window.currentUser.role === 'admin') {
+                document.getElementById('btnProposeTask').classList.add('hidden');
+                document.getElementById('btnAssignTask').classList.remove('hidden');
+            }
+
+            var sideEperfBtn = document.getElementById('side-eperformance');
+            if (window.canAccessEPerf(window.currentUser.id)) {
+                if (sideEperfBtn) sideEperfBtn.classList.remove('hidden');
+            } else {
+                if (sideEperfBtn) sideEperfBtn.classList.add('hidden');
+                var secEperf = document.getElementById('sec-eperformance');
+                if (secEperf && !secEperf.classList.contains('hidden')) {
+                    window.switchTab('tasks');
+                }
+            }
+
+            var btnAdminManageCodes = document.getElementById('btnAdminManageCodes');
+            var btnAdminManageAccounts = document.getElementById('btnAdminManageAccounts');
+            if (window.currentUser.role === 'admin') {
+                if (btnAdminManageCodes) btnAdminManageCodes.classList.remove('hidden');
+                if (btnAdminManageAccounts) btnAdminManageAccounts.classList.remove('hidden');
+            } else {
+                if (btnAdminManageCodes) btnAdminManageCodes.classList.add('hidden');
+                if (btnAdminManageAccounts) btnAdminManageAccounts.classList.add('hidden');
+            }
+
+            window.populateDropdowns();
+            window.renderAll();
+            window.checkDeadlineReminders();
+        };
+
+        window.logout = function() {
+            try { sessionStorage.removeItem(window.storageKey('active_user_id')); localStorage.removeItem(window.storageKey('active_user_id')); } catch (e) {}
+            if (window._auth) {
+                signOut(window._auth).finally(function() { location.reload(); });
+            } else {
+                location.reload();
+            }
+        };
+
+        window.resetAppStorage = function() {
+            try {
+                sessionStorage.removeItem(window.storageKey('active_user_id'));
+                localStorage.removeItem(window.storageKey('active_user_id'));
+                localStorage.removeItem(window.storageKey('profiles_cache'));
+            } catch (e) {}
+            if (window._auth) {
+                signOut(window._auth).finally(function() { location.reload(); });
+            } else {
+                location.reload();
+            }
+        };
+
+        window.changeMyPassword = async function() {
+            if (!window.currentUser || !window._auth || !window._auth.currentUser) {
+                alert('Sesi login tidak ditemukan. Silakan logout lalu login ulang.');
+                return;
+            }
+            var np = prompt('Masukkan password BARU untuk akun Anda (min 6 karakter):');
+            if (np === null) return;
+            np = np.trim();
+            if (np.length < 6) { alert('Password minimal 6 karakter.'); return; }
+
+            try {
+                await updatePassword(window._auth.currentUser, np);
+                alert('Password Anda berhasil diubah.');
+            } catch (e) {
+                if (e && e.code === 'auth/requires-recent-login') {
+                    alert('Demi keamanan, silakan Logout lalu login ulang, kemudian ubah password lagi.');
+                } else {
+                    alert('Gagal mengubah password: ' + (e.message || e.code || e));
+                }
+            }
+        };
+
+        // 5. AUTO INIT DOM
+        window.addEventListener('DOMContentLoaded', () => {
+            window.renderLoginAccounts();
+            window.updateClock();
+            setInterval(window.updateClock, 1000);
+            window.initFilterOptions('histFilterType', 'histFilterDetail');
+            window.initFilterOptions('arcFilterType', 'arcFilterDetail');
+
+            setInterval(function() {
+                if (window.currentUser) window.checkDeadlineReminders();
+            }, 60000);
+        });
+    </script>
+</body>
+</html>
