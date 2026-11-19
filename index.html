@@ -11,6 +11,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <!-- SheetJS: untuk Ekspor Excel di Contact Stakeholder -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col md:flex-row">
@@ -359,6 +361,21 @@
                                 <option value="OTHER">📌 Other</option>
                             </select>
                         </div>
+
+                        <!-- Toolbar: nomor ganda, buka/tutup grup, pilih & ekspor Excel (contacts.js v2) -->
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button type="button" id="contactDupBtn" onclick="window.toggleContactDupOnly()" class="text-xs font-semibold px-3 py-2 rounded-xl border transition bg-white text-red-600 border-red-200 hover:bg-red-50">⚠️ Nomor Ganda (0)</button>
+                                <button type="button" onclick="window.expandAllContacts(true)" class="text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700">➕ Buka Semua</button>
+                                <button type="button" onclick="window.expandAllContacts(false)" class="text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700">➖ Tutup Semua</button>
+                                <span id="contactTotalInfo" class="text-[11px] text-slate-500"></span>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <button type="button" onclick="window.selectAllFiltered(true)" class="text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700">☑️ Pilih Semua</button>
+                                <button type="button" onclick="window.clearContactSelection()" class="text-xs font-semibold px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700">✕ Batal Pilih</button>
+                                <button type="button" id="contactExportBtn" onclick="window.exportContactsExcel()" disabled class="text-xs font-bold px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white transition disabled:opacity-40 disabled:cursor-not-allowed">📥 Ekspor Excel (<span id="contactSelCount">0</span>)</button>
+                            </div>
+                        </div>
                     </div>
 
                     <div id="contactList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
@@ -540,6 +557,11 @@
                         <label class="block font-semibold mb-1">Nama Organisasi</label>
                         <input type="text" id="contactOrganisasi" placeholder="Contoh: PT Perkebunan Nusantara / Universitas X" class="w-full p-2.5 border rounded-xl">
                     </div>
+                </div>
+
+                <div>
+                    <label class="block font-semibold mb-1">Tim / Fokus <span class="text-slate-400 font-normal">(opsional)</span></label>
+                    <input type="text" id="contactTimFokus" placeholder="Contoh: Tim Hilirisasi Sawit / Komoditas Kakao" class="w-full p-2.5 border rounded-xl">
                 </div>
 
                 <div>
